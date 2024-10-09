@@ -7,6 +7,7 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 export default defineConfig({
   server: {
     host: '0.0.0.0', // Allows access from other devices
+    port: 3000, // Change this if you want a different port
   },
   plugins: [react(), wasm(), topLevelAwait()],
   resolve: {
