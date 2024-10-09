@@ -5,6 +5,9 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0', // Allows access from other devices
+  },
   plugins: [react(), wasm(), topLevelAwait()],
   resolve: {
     alias: {
