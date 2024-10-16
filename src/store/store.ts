@@ -30,6 +30,7 @@ import {
 import { Theme } from '@type/theme';
 
 export type StoreState = {
+  [x: string]: any;
   chats: ChatInterface[]; // Ensure this is required
   currentChatIndex: number;
   apiKey?: string; // Optional
