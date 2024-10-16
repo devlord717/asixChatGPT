@@ -2,6 +2,7 @@ import { debounce } from 'lodash';
 import { StorageValue } from 'zustand/middleware';
 import useStore from '@store/store';
 import useCloudAuthStore from '@store/cloud-auth-store';
+import { createPartializedState } from '@store/store';
 import {
   GoogleTokenInfo,
   GoogleFileResource,

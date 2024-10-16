@@ -39,7 +39,7 @@ export type StoreSlice<T> = (
   get: StoreApi<StoreState>['getState']
 ) => T;
 
-const createPartializedState = (state: StoreState): Partial<StoreState> => ({
+export const createPartializedState = (state: StoreState): Partial<StoreState> => ({
   chats: state.chats,
   currentChatIndex: state.currentChatIndex,
   apiKey: state.apiKey,
