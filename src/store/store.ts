@@ -7,7 +7,6 @@ import { ConfigSlice, createConfigSlice } from './config-slice';
 import { PromptSlice, createPromptSlice } from './prompt-slice';
 import { ToastSlice, createToastSlice } from './toast-slice';
 import {
-  ChatInterface,
   LocalStorageInterfaceV0ToV1,
   LocalStorageInterfaceV1ToV2,
   LocalStorageInterfaceV2ToV3,
@@ -27,32 +26,20 @@ import {
   migrateV6,
   migrateV7,
 } from './migrate';
-import { Theme } from '@type/theme';
 
-export type StoreState = {
-  [x: string]: any;
-  chats: ChatInterface[]; // Ensure this is required
-  currentChatIndex: number;
-  apiKey?: string; // Optional
-  apiEndpoint: string;
-  theme: Theme;
-  autoTitle: boolean;
-  advancedMode: boolean;
-  prompts: any[]; // Specify types
-  defaultChatConfig: any; // Specify types
-  defaultSystemMessage: string;
-  hideMenuOptions: boolean;
-  firstVisit: boolean;
-  hideSideMenu: boolean;
-  folders: any[]; // Specify types
-  enterToSubmit: boolean;
-  inlineLatex: boolean;
-  markdownMode: boolean;
-  totalTokenUsed: number;
-  countTotalTokens: boolean;
-};
+export type StoreState = ChatSlice & 
+  InputSlice & 
+  AuthSlice & 
+  ConfigSlice & 
+  PromptSlice & 
+  ToastSlice;
 
-export const createPartializedState = (state: StoreState) => ({
+export type StoreSlice<T> = (
+  set: StoreApi<StoreState>['setState'],
+  get: StoreApi<StoreState>['getState']
+) => T;
+
+const createPartializedState = (state: StoreState): Partial<StoreState> => ({
   chats: state.chats,
   currentChatIndex: state.currentChatIndex,
   apiKey: state.apiKey,
@@ -72,6 +59,10 @@ export const createPartializedState = (state: StoreState) => ({
   markdownMode: state.markdownMode,
   totalTokenUsed: state.totalTokenUsed,
   countTotalTokens: state.countTotalTokens,
+  messages: state.messages,
+  generating: state.generating,
+  error: state.error,
+  setMessages: state.setMessages,
 });
 
 const useStore = create<StoreState>()(
@@ -86,59 +77,65 @@ const useStore = create<StoreState>()(
     }),
     {
       name: 'free-chat-gpt',
-      partialize: (state) => createPartializedState(state),
+      partialize: createPartializedState,
       version: 8,
-      migrate: (persistedState, version) => {
+      migrate: (persistedState: any, version: number): StoreState => {
+        let migratedState = persistedState;
+
         switch (version) {
           case 0:
-            migrateV0(persistedState as LocalStorageInterfaceV0ToV1);
+            migratedState = migrateV0(persistedState as LocalStorageInterfaceV0ToV1);
             break;
           case 1:
-            migrateV1(persistedState as LocalStorageInterfaceV1ToV2);
+            migratedState = migrateV1(persistedState as LocalStorageInterfaceV1ToV2);
             break;
           case 2:
-            migrateV2(persistedState as LocalStorageInterfaceV2ToV3);
+            migratedState = migrateV2(persistedState as LocalStorageInterfaceV2ToV3);
             break;
           case 3:
-            migrateV3(persistedState as LocalStorageInterfaceV3ToV4);
+            migratedState = migrateV3(persistedState as LocalStorageInterfaceV3ToV4);
             break;
           case 4:
-            migrateV4(persistedState as LocalStorageInterfaceV4ToV5);
+            migratedState = migrateV4(persistedState as LocalStorageInterfaceV4ToV5);
             break;
           case 5:
-            migrateV5(persistedState as LocalStorageInterfaceV5ToV6);
+            migratedState = migrateV5(persistedState as LocalStorageInterfaceV5ToV6);
             break;
           case 6:
-            migrateV6(persistedState as LocalStorageInterfaceV6ToV7);
+            migratedState = migrateV6(persistedState as LocalStorageInterfaceV6ToV7);
             break;
           case 7:
-            migrateV7(persistedState as LocalStorageInterfaceV7oV8);
+            migratedState = migrateV7(persistedState as LocalStorageInterfaceV7oV8);
             break;
-          default:
-            return {
-              chats: [], // Ensure this matches expected shape
-              currentChatIndex: 0,
-              apiKey: undefined,
-              apiEndpoint: '',
-              theme: 'default',
-              autoTitle: false,
-              advancedMode: false,
-              prompts: [],
-              defaultChatConfig: {},
-              defaultSystemMessage: '',
-              hideMenuOptions: false,
-              firstVisit: true,
-              hideSideMenu: false,
-              folders: [],
-              enterToSubmit: false,
-              inlineLatex: false,
-              markdownMode: false,
-              totalTokenUsed: 0,
-              countTotalTokens: false,
-            } as unknown as StoreState; // Ensure this is complete
         }
 
-        return persistedState as StoreState; // Ensure this is a complete and valid StoreState
+        // Ensure the returned object has all required properties
+        return {
+          chats: [],
+          currentChatIndex: 0,
+          apiKey: undefined,
+          apiEndpoint: '',
+          theme: 'default',
+          autoTitle: false,
+          advancedMode: false,
+          prompts: [],
+          defaultChatConfig: {},
+          defaultSystemMessage: '',
+          hideMenuOptions: false,
+          firstVisit: true,
+          hideSideMenu: false,
+          folders: [],
+          enterToSubmit: false,
+          inlineLatex: false,
+          markdownMode: false,
+          totalTokenUsed: 0,
+          countTotalTokens: false,
+          messages: [],
+          generating: false,
+          error: null,
+          // setMessages: (messages: any[]) => new Set({ messages }), // Ensure 'set' is properly passed
+          ...migratedState,
+        } as StoreState;
       },
     }
   )
