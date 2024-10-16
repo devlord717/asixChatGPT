@@ -27,11 +27,11 @@ import {
   migrateV7,
 } from './migrate';
 
-export type StoreState = ChatSlice &
-  InputSlice &
-  AuthSlice &
-  ConfigSlice &
-  PromptSlice &
+export type StoreState = ChatSlice & 
+  InputSlice & 
+  AuthSlice & 
+  ConfigSlice & 
+  PromptSlice & 
   ToastSlice;
 
 export type StoreSlice<T> = (
@@ -39,7 +39,7 @@ export type StoreSlice<T> = (
   get: StoreApi<StoreState>['getState']
 ) => T;
 
-export const createPartializedState = (state: StoreState) => ({
+const createPartializedState = (state: StoreState): Partial<StoreState> => ({
   chats: state.chats,
   currentChatIndex: state.currentChatIndex,
   apiKey: state.apiKey,
@@ -59,6 +59,10 @@ export const createPartializedState = (state: StoreState) => ({
   markdownMode: state.markdownMode,
   totalTokenUsed: state.totalTokenUsed,
   countTotalTokens: state.countTotalTokens,
+  messages: state.messages,
+  generating: state.generating,
+  error: state.error,
+  setMessages: state.setMessages,
 });
 
 const useStore = create<StoreState>()(
@@ -73,29 +77,65 @@ const useStore = create<StoreState>()(
     }),
     {
       name: 'free-chat-gpt',
-      partialize: (state) => createPartializedState(state),
+      partialize: createPartializedState,
       version: 8,
-      migrate: (persistedState, version) => {
+      migrate: (persistedState: any, version: number): StoreState => {
+        let migratedState = persistedState;
+
         switch (version) {
           case 0:
-            migrateV0(persistedState as LocalStorageInterfaceV0ToV1);
+            migratedState = migrateV0(persistedState as LocalStorageInterfaceV0ToV1);
+            break;
           case 1:
-            migrateV1(persistedState as LocalStorageInterfaceV1ToV2);
+            migratedState = migrateV1(persistedState as LocalStorageInterfaceV1ToV2);
+            break;
           case 2:
-            migrateV2(persistedState as LocalStorageInterfaceV2ToV3);
+            migratedState = migrateV2(persistedState as LocalStorageInterfaceV2ToV3);
+            break;
           case 3:
-            migrateV3(persistedState as LocalStorageInterfaceV3ToV4);
+            migratedState = migrateV3(persistedState as LocalStorageInterfaceV3ToV4);
+            break;
           case 4:
-            migrateV4(persistedState as LocalStorageInterfaceV4ToV5);
+            migratedState = migrateV4(persistedState as LocalStorageInterfaceV4ToV5);
+            break;
           case 5:
-            migrateV5(persistedState as LocalStorageInterfaceV5ToV6);
+            migratedState = migrateV5(persistedState as LocalStorageInterfaceV5ToV6);
+            break;
           case 6:
-            migrateV6(persistedState as LocalStorageInterfaceV6ToV7);
+            migratedState = migrateV6(persistedState as LocalStorageInterfaceV6ToV7);
+            break;
           case 7:
-            migrateV7(persistedState as LocalStorageInterfaceV7oV8);
+            migratedState = migrateV7(persistedState as LocalStorageInterfaceV7oV8);
             break;
         }
-        return persistedState as StoreState;
+
+        // Ensure the returned object has all required properties
+        return {
+          chats: [],
+          currentChatIndex: 0,
+          apiKey: undefined,
+          apiEndpoint: '',
+          theme: 'default',
+          autoTitle: false,
+          advancedMode: false,
+          prompts: [],
+          defaultChatConfig: {},
+          defaultSystemMessage: '',
+          hideMenuOptions: false,
+          firstVisit: true,
+          hideSideMenu: false,
+          folders: [],
+          enterToSubmit: false,
+          inlineLatex: false,
+          markdownMode: false,
+          totalTokenUsed: 0,
+          countTotalTokens: false,
+          messages: [],
+          generating: false,
+          error: null,
+          setMessages: (messages: any[]) => set({ messages }), // Ensure 'set' is properly passed
+          ...migratedState,
+        } as StoreState;
       },
     }
   )
