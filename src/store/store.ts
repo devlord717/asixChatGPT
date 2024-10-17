@@ -115,7 +115,7 @@ const useStore = create<StoreState>()(
           currentChatIndex: 0,
           apiKey: undefined,
           apiEndpoint: '',
-          theme: 'default',
+          theme: 'light',
           autoTitle: false,
           advancedMode: false,
           prompts: [],
