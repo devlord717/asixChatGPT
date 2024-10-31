@@ -106,6 +106,7 @@ export const convertOpenAIToAsixChatGPTFormat = (
       if (content.length > 0) messages.push({ role, content });
     }
 
+    /// Is it right?
     // Traverse the last child node if any children exist
     if (node.children.length > 0) {
       traverseTree(node.children[node.children.length - 1]);
